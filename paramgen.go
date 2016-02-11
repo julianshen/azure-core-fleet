@@ -61,22 +61,24 @@ func NewParam() *AzureDeployParameters {
 }
 
 func Init(params *AzureDeployParameters) {
+    usr, err := user.Current()
+
+    if err != nil {
+        log.Panic("Current use is not found", err)
+    }
+    
+    var sshKeyFile = ""
 	flag.StringVar(&params.Parameters.Location.Value, "location", "West US", "VM location")
 	flag.StringVar(&params.Parameters.NewStorageAccountName.Value, "newStorageAccountName", "costorageaccountre", "Storage account name")
 	flag.StringVar(&params.Parameters.AdminUserName.Value, "adminUserName", "core", "Admin user name")
 	flag.IntVar(&params.Parameters.NumberOfNodes.Value, "numberOfNodes", 3, "Number of nodes")
 	flag.StringVar(&params.Parameters.VmNamePrefix.Value, "vmNamePrefix", "core", "VM name prefix")
 	flag.StringVar(&params.Parameters.VmSize.Value, "vmSize", "core", "VM Size. (default: Standard_A1)")
-	flag.Parse()
+	flag.StringVar(&sshKeyFile, "sshKeyFile", usr.HomeDir + "/.ssh/id_rsa.pub", "SSH Key file")
+    flag.Parse()
 
 	if params.Parameters.SshKeyData.Value == "" {
-		usr, err := user.Current()
-
-		if err != nil {
-			log.Panic("Current use is not found", err)
-		}
-
-		bytes, err := ioutil.ReadFile(usr.HomeDir + "/.ssh/id_rsa.pub")
+		bytes, err := ioutil.ReadFile(sshKeyFile)
 
 		if err != nil {
 			log.Panic("Read default ssh key file "+usr.HomeDir+"/.ssh/id_rsa.pub failed", err)
